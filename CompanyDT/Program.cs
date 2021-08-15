@@ -13,6 +13,17 @@ namespace CompanyDT
 {
     class Program
     {
+        /* NOTES:
+         * poprawic i przepisac eksport i obsluge bazy danych
+         * dodawanie do bazy danych odrazu z eventu 
+         * 
+         * szybkie prasowanie danych prost z strony kategorii
+         * 
+         * poprawa prasowania danych z strony firmy
+         * 
+         * obsluga argumentow
+         */
+        static int companyCount = 0;
         static void Main(string[] args)
         {
             Console.WriteAscii("CompanyDT",Color.DarkSeaGreen);
@@ -42,25 +53,9 @@ namespace CompanyDT
             {
                 if (File.Exists(dbFileName)) 
                 { 
-                    File.Delete(dbFileName); SQLiteConnection.CreateFile(dbFileName); 
-                }
-            }
+                    File.Delete(dbFileName); SQLiteConnection.CreateFile(dbFileName);
 
-            for (int i =0;i < categoryInfo.PageCount ;i++)
-            {
-                CategoryInfo info = new CategoryInfo(CreateAdress(category, i), category);
-                Console.Write("\nPreparing Page (" + (i + 1) + ").. " + "\n", Color.Yellow);
-                
-                CompanyListPage companyListPage = new CompanyListPage(info.adress);
-                companyListPage.NewCompany += CompanyListPage_NewCompany;
-
-                Company[] companies = companyListPage.GetCompanyList(useChromeDriver);
-
-                if (exportToFile)
-                {
-                    
-
-                    SQLiteConnection connection = new SQLiteConnection("Data Source="+ dbFileName + ";Version=3;");
+                    SQLiteConnection connection = new SQLiteConnection("Data Source=" + dbFileName + ";Version=3;");
                     connection.Open();
 
                     string sql = "CREATE TABLE companies (" +
@@ -73,10 +68,30 @@ namespace CompanyDT
 
                     SQLiteCommand command = new SQLiteCommand(sql, connection);
                     command.ExecuteNonQuery();
+                }
+            }
 
-                    foreach(Company company in companies)
+            for (int i =0;i < categoryInfo.PageCount ;i++)
+            {
+                CategoryInfo info = new CategoryInfo(CreateAdress(category, i), category);
+                Console.WriteLine("\nPreparing Page (" + (i + 1) + ")", Color.Yellow);
+                Console.WriteLine("Stored company data ("+companyCount+")", Color.Yellow);
+                
+                CompanyListPage companyListPage = new CompanyListPage(info.adress);
+                companyListPage.NewCompany += CompanyListPage_NewCompany;
+
+                Company[] companies = companyListPage.GetCompanyList(useChromeDriver);
+
+                if (exportToFile)
+                {
+                    SQLiteConnection connection = new SQLiteConnection("Data Source=" + dbFileName + ";Version=3;");
+                    connection.Open();
+
+
+
+                    foreach (Company company in companies)
                     {
-                        sql = "INSERT INTO companies (name,page,category,adress,mail,phone) VALUES" +
+                        string sql = "INSERT INTO companies (name,page,category,adress,mail,phone) VALUES" +
                             "('"+company.name+"','"+company.page+"','"+company.category+"','"+company.adress+"','"+company.mail+"','"+company.phoneNumber+"')";
 
                         using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
@@ -84,6 +99,8 @@ namespace CompanyDT
                             cmd.ExecuteNonQuery();
                         }
                     }
+
+                    connection.Close();
                 }
             }
 
@@ -95,6 +112,7 @@ namespace CompanyDT
         private static void CompanyListPage_NewCompany(Company company)
         {
             Console.WriteLine(company.ToString(),Color.Tomato);
+            companyCount++;
         }
 
         static string CreateAdress(string category,int page)
