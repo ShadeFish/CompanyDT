@@ -13,16 +13,6 @@ namespace CompanyDT
 {
     class Program
     {
-        /* NOTES:
-         * poprawic i przepisac eksport i obsluge bazy danych
-         * dodawanie do bazy danych odrazu z eventu 
-         * 
-         * szybkie prasowanie danych prost z strony kategorii
-         * 
-         * poprawa prasowania danych z strony firmy
-         * 
-         * obsluga argumentow
-         */
         static int companyCount = 0;
         static void Main(string[] args)
         {
@@ -32,15 +22,12 @@ namespace CompanyDT
             Console.Write("Select Category: ");
             string category = Console.ReadLine();
             
-
             Console.Write("Use ChromeWebDriver? n/y: ");
             bool useChromeDriver = (Console.ReadLine() == "y") ? true : false;
-
 
             Console.Write("Export to SQL DATABASE file? y/n: ");
             bool exportToFile = (Console.ReadLine() == "y") ? true : false;
             Console.Clear();
-
 
             Console.Write("Downloading Category Info.. ",Color.Yellow);
             CategoryInfo categoryInfo = new CategoryInfo(CreateAdress(category,0),category);
@@ -87,8 +74,6 @@ namespace CompanyDT
                     SQLiteConnection connection = new SQLiteConnection("Data Source=" + dbFileName + ";Version=3;");
                     connection.Open();
 
-
-
                     foreach (Company company in companies)
                     {
                         string sql = "INSERT INTO companies (name,page,category,adress,mail,phone) VALUES" +
@@ -103,10 +88,6 @@ namespace CompanyDT
                     connection.Close();
                 }
             }
-
-            
-
-            
         }
 
         private static void CompanyListPage_NewCompany(Company company)
@@ -126,10 +107,5 @@ namespace CompanyDT
                 return "https://panoramafirm.pl/" + category.Replace(' ', '_') + "/firmy," + page.ToString() + ".html";
             }
         }
-
-        
-
-        /* GET ALL COMPANIES FROM PAGE */
-        
     }
 }
